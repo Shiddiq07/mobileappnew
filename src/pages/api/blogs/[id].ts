@@ -2,16 +2,16 @@ import type { NextApiRequest, NextApiResponse } from 'next'
 import clientPromise from "../../../lib/mongodb";
 import { ObjectId } from 'mongodb';
 
-export default async function handler(req:NextApiRequest, res:NextApiResponse) {
+export default async function handler(req: NextApiRequest, res: NextApiResponse) {
     const client = await clientPromise;
     const db = client.db(process.env.MONGODB_NAME);
-    const idParam:string = req?.query?.id as string || ''
+    const idParam: string = req?.query?.id as string || ''
     const id = new ObjectId(idParam);
 
-    switch (req.method) {  
+    switch (req.method) {
         case "PUT":
-            try{
-                const filter = {_id: id }
+            try {
+                const filter = { _id: id }
                 const body = JSON.parse(req.body)
                 // const body = req.body
                 const updateDoc = {
@@ -20,35 +20,35 @@ export default async function handler(req:NextApiRequest, res:NextApiResponse) {
                         subTitle: body.subTitle,
                         title: body.title
                     },
-                  };
-                console.log('filter',filter)
+                };
+                console.log('filter', filter)
                 const blogs = await db.collection("blogs")
-                        .updateOne(filter, updateDoc, { upsert: true })
+                    .updateOne(filter, updateDoc, { upsert: true })
 
-                res.status(200).json({data:[blogs], message: 'data berhasil di perbaharui'});
-            }catch(err){
-                res.status(422).json({ message: err.message});
+                res.status(200).json({ data: [blogs], message: 'data berhasil di perbaharui' });
+            } catch (err) {
+                res.status(422).json({ message: err.message });
             }
-        break;
+            break;
         case "DELETE":
-            try{
+            try {
                 const resDelete = await db.collection("blogs").deleteOne({
                     _id: id
                 })
 
-                if(resDelete.deletedCount < 1){
+                if (resDelete.deletedCount < 1) {
                     throw new Error('data tidak ditemukan')
                 }
 
-                res.json({ data: [resDelete], message:"data berhasil dihapus" });
-            }catch(err){
-                res.status(422).json({ message: err.message});
+                res.json({ data: [resDelete], message: "data berhasil dihapus" });
+            } catch (err) {
+                res.status(422).json({ message: err.message });
             }
-        break;
+            break;
         default:
             const education = await db.collection("blogs")
                 .findOne({ _id: id })
             res.json({ data: education });
-        break;
+            break;
     }
 }
